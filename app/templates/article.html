@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ article.meta_title or article.title }}{% endblock %}
+
+{% block meta_description %}{{ article.meta_description or article.summary }}{% endblock %}
+
+{% block meta_keywords %}{{ article.keywords }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <!-- Article Content -->
+        <article class="mb-5">
+            <header class="mb-4">
+                <span class="badge bg-primary mb-2">{{ article.category.name }}</span>
+                <h1 class="fw-bold">
+                    <span class="english-text">{{ article.title }}</span>
+                    <span class="urdu-text" style="display: none; text-align: right; direction: rtl;">{{ article.title_urdu }}</span>
+                </h1>
+                <div class="text-muted mb-3">
+                    <span>{{ article.published_date.strftime('%B %d, %Y') }}</span>
+                    <span class="mx-1">|</span>
+                    <span>Source: {{ article.source.name }}</span>
+                    {% if article.original_url %}
+                    <span class="mx-1">|</span>
+                    <a href="{{ article.original_url }}" target="_blank" rel="noopener noreferrer">Original Article</a>
+                    {% endif %}
+                </div>
+            </header>
+            
+            {% if article.image_url %}
+            <figure class="mb-4">
+                <img class="img-fluid rounded" src="{{ article.image_url }}" alt="{{ article.title }}">
+            </figure>
+            {% endif %}
+            
+            <div class="article-content">
+                <div class="english-text">
+                    {% for paragraph in article.content.split('\n\n') %}
+                    <p>{{ paragraph }}</p>
+                    {% endfor %}
+                </div>
+                <div class="urdu-text" style="display: none; text-align: right; direction: rtl;">
+                    {% for paragraph in article.content_urdu.split('\n\n') %}
+                    <p>{{ paragraph }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Social Share Buttons -->
+            <div class="mt-5">
+                <h5>Share This Article:</h5>
+                <div class="social-share">
+                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}" target="_blank" class="btn btn-primary me-2">
+                        <i class="fab fa-facebook-f"></i> Facebook
+                    </a>
+                    <a href="https://twitter.com/intent/tweet?url={{ request.url|urlencode }}&text={{ article.title|urlencode }}" target="_blank" class="btn btn-info me-2">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </a>
+                    <a href="https://api.whatsapp.com/send?text={{ article.title|urlencode }}%20{{ request.url|urlencode }}" target="_blank" class="btn btn-success me-2">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </a>
+                </div>
+            </div>
+        </article>
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Related Articles -->
+        <div class="card mb-4">
+            <div class="card-header">Related Articles</div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    {% for related in related_articles %}
+                    <li class="mb-3">
+                        <div class="row g-0">
+                            <div class="col-4">
+                                {% if related.image_url %}
+                                <img src="{{ related.image_url }}" class="img-fluid rounded" alt="{{ related.title }}">
+                                {% else %}
+                                <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="img-fluid rounded" alt="News placeholder">
+                                {% endif %}
+                            </div>
+                            <div class="col-8">
+                                <div class="ps-3">
+                                    <h6 class="mb-1">
+                                        <a href="{{ url_for('main.article', slug=related.slug) }}" class="text-decoration-none text-dark">
+                                            <span class="english-text">{{ related.title }}</span>
+                                            <span class="urdu-text" style="display: none;">{{ related.title_urdu }}</span>
+                                        </a>
+                                    </h6>
+                                    <small class="text-muted">{{ related.published_date.strftime('%B %d, %Y') }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Categories -->
+        <div class="card">
+            <div class="card-header">Categories</div>
+            <div class="card-body">
+                <div class="row">
+                    {% for category in categories %}
+                    <div class="col-6 mb-2">
+                        <a href="{{ url_for('main.category', slug=category.slug) }}" class="text-decoration-none">{{ category.name }}</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Language switcher
+        const languageLinks = document.querySelectorAll('[data-lang]');
+        languageLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lang = this.getAttribute('data-lang');
+                switchLanguage(lang);
+            });
+        });
+        
+        function switchLanguage(lang) {
+            const englishElements = document.querySelectorAll('.english-text');
+            const urduElements = document.querySelectorAll('.urdu-text');
+            
+            if (lang === 'ur') {
+                englishElements.forEach(el => el.style.display = 'none');
+                urduElements.forEach(el => el.style.display = 'block');
+                document.body.style.direction = 'rtl';
+            } else {
+                englishElements.forEach(el => el.style.display = 'block');
+                urduElements.forEach(el => el.style.display = 'none');
+                document.body.style.direction = 'ltr';
+            }
+        }
+    });
+</script>
+{% endblock %}

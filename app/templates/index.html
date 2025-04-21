@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block title %}News Agent - Latest News in Urdu{% endblock %}
+
+{% block meta_description %}Get the latest international and national news in Urdu. Stay updated with breaking news, politics, business, technology, and more.{% endblock %}
+
+{% block meta_keywords %}urdu news, latest news, international news, breaking news, pakistan news, world news{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Featured News Section -->
+    {% if latest_news and latest_news|length > 0 %}
+    <div class="col-12 mb-4">
+        <div class="card featured-news">
+            <div class="row g-0">
+                <div class="col-md-6">
+                    {% if latest_news[0].image_url %}
+                    <img src="{{ latest_news[0].image_url }}" class="img-fluid rounded-start" alt="{{ latest_news[0].title }}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="img-fluid rounded-start" alt="News placeholder">
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <span class="badge bg-primary mb-2">{{ latest_news[0].category.name }}</span>
+                        <h2 class="card-title">
+                            <a href="{{ url_for('main.article', slug=latest_news[0].slug) }}" class="text-decoration-none text-dark">
+                                <span class="english-text">{{ latest_news[0].title }}</span>
+                                <span class="urdu-text" style="display: none;">{{ latest_news[0].title_urdu }}</span>
+                            </a>
+                        </h2>
+                        <p class="card-text">
+                            <span class="english-text">{{ latest_news[0].summary }}</span>
+                            <span class="urdu-text" style="display: none; text-align: right; direction: rtl;">{{ latest_news[0].summary }}</span>
+                        </p>
+                        <p class="card-text"><small class="text-muted">{{ latest_news[0].published_date.strftime('%B %d, %Y') }}</small></p>
+                        <a href="{{ url_for('main.article', slug=latest_news[0].slug) }}" class="btn btn-primary">Read More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Latest News Section -->
+    <div class="col-12">
+        <h3 class="mb-4 border-bottom pb-2">Latest News</h3>
+        <div class="row">
+            {% for article in latest_news[1:] %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if article.image_url %}
+                    <img src="{{ article.image_url }}" class="card-img-top" alt="{{ article.title }}">
+                    {% else %}
+                    <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="card-img-top" alt="News placeholder">
+                    {% endif %}
+                    <div class="card-body">
+                        <span class="badge bg-secondary mb-2">{{ article.category.name }}</span>
+                        <h5 class="card-title">
+                            <a href="{{ url_for('main.article', slug=article.slug) }}" class="text-decoration-none text-dark">
+                                <span class="english-text">{{ article.title }}</span>
+                                <span class="urdu-text" style="display: none;">{{ article.title_urdu }}</span>
+                            </a>
+                        </h5>
+                        <p class="card-text">
+                            <small class="text-muted">{{ article.published_date.strftime('%B %d, %Y') }}</small>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0">
+                        <a href="{{ url_for('main.article', slug=article.slug) }}" class="btn btn-sm btn-outline-primary">Read More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Categories Section -->
+    <div class="col-12 mt-5">
+        <h3 class="mb-4 border-bottom pb-2">News Categories</h3>
+        <div class="row">
+            {% for category in categories %}
+            <div class="col-md-3 mb-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ category.name }}</h5>
+                        <a href="{{ url_for('main.category', slug=category.slug) }}" class="btn btn-outline-secondary">View News</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Language switcher
+        const languageLinks = document.querySelectorAll('[data-lang]');
+        languageLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lang = this.getAttribute('data-lang');
+                switchLanguage(lang);
+            });
+        });
+        
+        function switchLanguage(lang) {
+            const englishElements = document.querySelectorAll('.english-text');
+            const urduElements = document.querySelectorAll('.urdu-text');
+            
+            if (lang === 'ur') {
+                englishElements.forEach(el => el.style.display = 'none');
+                urduElements.forEach(el => el.style.display = 'block');
+                document.body.style.direction = 'rtl';
+            } else {
+                englishElements.forEach(el => el.style.display = 'block');
+                urduElements.forEach(el => el.style.display = 'none');
+                document.body.style.direction = 'ltr';
+            }
+        }
+    });
+</script>
+{% endblock %}
