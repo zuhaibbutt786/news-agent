@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results for "{{ query }}" - News Agent{% endblock %}
+
+{% block meta_description %}Search results for "{{ query }}" on News Agent. Find the latest news articles related to your search.{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Search Results for "{{ query }}"</h1>
+        
+        {% if search_results.total > 0 %}
+        <p>Found {{ search_results.total }} result{% if search_results.total != 1 %}s{% endif %}.</p>
+        
+        <!-- Search Results -->
+        <div class="list-group mb-4">
+            {% for article in search_results.items %}
+            <a href="{{ url_for('main.article', slug=article.slug) }}" class="list-group-item list-group-item-action">
+                <div class="row">
+                    <div class="col-md-2">
+                        {% if article.image_url %}
+                        <img src="{{ article.image_url }}" class="img-fluid rounded" alt="{{ article.title }}">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="img-fluid rounded" alt="News placeholder">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-10">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">
+                                <span class="english-text">{{ article.title }}</span>
+                                <span class="urdu-text" style="display: none;">{{ article.title_urdu }}</span>
+                            </h5>
+                            <small>{{ article.published_date.strftime('%B %d, %Y') }}</small>
+                        </div>
+                        <p class="mb-1">
+                            <span class="english-text">{{ article.summary }}</span>
+                            <span class="urdu-text" style="display: none; text-align: right; direction: rtl;">{{ article.summary }}</span>
+                        </p>
+                        <small>Category: {{ article.category.name }} | Source: {{ article.source.name }}</small>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if search_results.pages > 1 %}
+        <nav aria-label="Search results pagination">
+            <ul class="pagination justify-content-center">
+                {% if search_results.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.search', q=query, page=search_results.prev_num) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in search_results.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == search_results.page %}
+                        <li class="page-item active">
+                            <a class="page-link" href="{{ url_for('main.search', q=query, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.search', q=query, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if search_results.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.search', q=query, page=search_results.next_num) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="alert alert-info">
+            No results found for "{{ query }}". Please try a different search term.
+        </div>
+        
+        <div class="mt-4">
+            <h4>Suggestions:</h4>
+            <ul>
+                <li>Check your spelling</li>
+                <li>Try more general keywords</li>
+                <li>Try different keywords</li>
+                <li>Browse our <a href="{{ url_for('main.index') }}">latest news</a> instead</li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Language switcher
+        const languageLinks = document.querySelectorAll('[data-lang]');
+        languageLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lang = this.getAttribute('data-lang');
+                switchLanguage(lang);
+            });
+        });
+        
+        function switchLanguage(lang) {
+            const englishElements = document.querySelectorAll('.english-text');
+            const urduElements = document.querySelectorAll('.urdu-text');
+            
+            if (lang === 'ur') {
+                englishElements.forEach(el => el.style.display = 'none');
+                urduElements.forEach(el => el.style.display = 'block');
+                document.body.style.direction = 'rtl';
+            } else {
+                englishElements.forEach(el => el.style.display = 'block');
+                urduElements.forEach(el => el.style.display = 'none');
+                document.body.style.direction = 'ltr';
+            }
+        }
+    });
+</script>
+{% endblock %}

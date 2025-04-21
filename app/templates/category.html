@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ category.name }} News - News Agent{% endblock %}
+
+{% block meta_description %}Latest {{ category.name }} news in Urdu. Stay updated with breaking news and developments in {{ category.name }}.{% endblock %}
+
+{% block meta_keywords %}{{ category.name }}, {{ category.name }} news, urdu news, latest news{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">{{ category.name }} News</h1>
+        
+        <!-- Category News Articles -->
+        <div class="row">
+            {% for article in news_articles.items %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            {% if article.image_url %}
+                            <img src="{{ article.image_url }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="{{ article.title }}">
+                            {% else %}
+                            <img src="{{ url_for('static', filename='images/placeholder.jpg') }}" class="img-fluid rounded-start h-100" style="object-fit: cover;" alt="News placeholder">
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <a href="{{ url_for('main.article', slug=article.slug) }}" class="text-decoration-none text-dark">
+                                        <span class="english-text">{{ article.title }}</span>
+                                        <span class="urdu-text" style="display: none;">{{ article.title_urdu }}</span>
+                                    </a>
+                                </h5>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ article.published_date.strftime('%B %d, %Y') }} | {{ article.source.name }}</small>
+                                </p>
+                                <p class="card-text">
+                                    <span class="english-text">{{ article.summary }}</span>
+                                    <span class="urdu-text" style="display: none; text-align: right; direction: rtl;">{{ article.summary }}</span>
+                                </p>
+                                <a href="{{ url_for('main.article', slug=article.slug) }}" class="btn btn-sm btn-outline-primary">Read More</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if news_articles.pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if news_articles.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=news_articles.prev_num) }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in news_articles.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        {% if page_num == news_articles.page %}
+                        <li class="page-item active">
+                            <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if news_articles.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.category', slug=category.slug, page=news_articles.next_num) }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Language switcher
+        const languageLinks = document.querySelectorAll('[data-lang]');
+        languageLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const lang = this.getAttribute('data-lang');
+                switchLanguage(lang);
+            });
+        });
+        
+        function switchLanguage(lang) {
+            const englishElements = document.querySelectorAll('.english-text');
+            const urduElements = document.querySelectorAll('.urdu-text');
+            
+            if (lang === 'ur') {
+                englishElements.forEach(el => el.style.display = 'none');
+                urduElements.forEach(el => el.style.display = 'block');
+                document.body.style.direction = 'rtl';
+            } else {
+                englishElements.forEach(el => el.style.display = 'block');
+                urduElements.forEach(el => el.style.display = 'none');
+                document.body.style.direction = 'ltr';
+            }
+        }
+    });
+</script>
+{% endblock %}
