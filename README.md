@@ -108,9 +108,20 @@ news-agent/
 │   │   └── scheduler.py          # Scheduling utilities
 │   ├── scrapers/                  # News scraping modules
 │   │   ├── __init__.py
-│   │   ├── base.py               # Base scraper class
-│   │   ├── bbc.py                # BBC News scraper
-│   │   └── dawn.py               # Dawn News scraper
+│   │   ├── base_scraper.py       # Base scraper class
+│   │   ├── bbc_scraper.py        # BBC News scraper
+│   │   ├── geo_scraper.py        # Geo News scraper
+│   │   ├── ary_scraper.py        # ARY News scraper
+│   │   ├── dunya_scraper.py      # Dunya News scraper
+│   │   ├── express_scraper.py    # Express News scraper
+│   │   ├── dawn_scraper.py       # Dawn News scraper
+│   │   ├── samaa_scraper.py      # Samaa News scraper
+│   │   ├── bol_scraper.py        # BOL News scraper
+│   │   ├── tribune_scraper.py    # Tribune News scraper
+│   │   ├── aaj_scraper.py        # Aaj News scraper
+│   │   ├── 92news_scraper.py     # 92 News scraper
+│   │   ├── thenews_scraper.py    # The News International scraper
+│   │   └── scraper_manager.py    # Scraper management module
 │   ├── nlp/                       # Natural Language Processing
 │   │   ├── __init__.py
 │   │   └── processor.py          # Text processing and rephrasing
@@ -166,7 +177,24 @@ To add a new news source:
 
 1. Create a new scraper in `app/scrapers/` that inherits from `BaseScraper`
 2. Implement the required methods: `fetch_articles()` and `parse_article()`
-3. Register the scraper in `app/scrapers/__init__.py`
+3. Register the scraper in `app/scrapers/scraper_manager.py`
+
+The application already includes scrapers for the following sources:
+- International: BBC News
+- Pakistani: 
+  - Geo News
+  - ARY News
+  - Dunya News
+  - Express News
+  - Dawn News
+  - Samaa News
+  - BOL News
+  - The Express Tribune
+  - Aaj News
+  - 92 News
+  - The News International
+
+You can use these as examples when implementing scrapers for additional news sources.
 
 ### Modifying the Frontend
 

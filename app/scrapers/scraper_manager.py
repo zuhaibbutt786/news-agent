@@ -1,5 +1,16 @@
 import logging
 from app.scrapers.bbc_scraper import BBCScraper
+from app.scrapers.geo_scraper import GeoNewsScraper
+from app.scrapers.ary_scraper import ARYNewsScraper
+from app.scrapers.dunya_scraper import DunyaNewsScraper
+from app.scrapers.express_scraper import ExpressNewsScraper
+from app.scrapers.dawn_scraper import DawnNewsScraper
+from app.scrapers.samaa_scraper import SamaaNewsScraper
+from app.scrapers.bol_scraper import BolNewsScraper
+from app.scrapers.tribune_scraper import TribuneNewsScraper
+from app.scrapers.aaj_scraper import AajNewsScraper
+from app.scrapers.92news_scraper import News92Scraper
+from app.scrapers.thenews_scraper import TheNewsScraper
 from app.models.news import Source, Category, NewsArticle
 from app import db
 from app.utils.text_utils import generate_slug
@@ -12,7 +23,18 @@ from datetime import datetime
 class ScraperManager:
     def __init__(self):
         self.scrapers = {
-            'bbc': BBCScraper()
+            'bbc': BBCScraper(),
+            'geo': GeoNewsScraper(),
+            'ary': ARYNewsScraper(),
+            'dunya': DunyaNewsScraper(),
+            'express': ExpressNewsScraper(),
+            'dawn': DawnNewsScraper(),
+            'samaa': SamaaNewsScraper(),
+            'bol': BolNewsScraper(),
+            'tribune': TribuneNewsScraper(),
+            'aaj': AajNewsScraper(),
+            '92news': News92Scraper(),
+            'thenews': TheNewsScraper()
         }
         self.logger = logging.getLogger('scraper.manager')
         self.text_processor = TextProcessor()
