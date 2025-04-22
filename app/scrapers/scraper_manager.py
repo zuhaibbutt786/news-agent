@@ -9,8 +9,19 @@ from app.scrapers.samaa_scraper import SamaaNewsScraper
 from app.scrapers.bol_scraper import BolNewsScraper
 from app.scrapers.tribune_scraper import TribuneNewsScraper
 from app.scrapers.aaj_scraper import AajNewsScraper
-from app.scrapers.92news_scraper import News92Scraper
+from app.scrapers.news92_scraper import News92Scraper
 from app.scrapers.thenews_scraper import TheNewsScraper
+# International news sources
+from app.scrapers.aljazeera_scraper import AlJazeeraScraper
+from app.scrapers.arabnews_scraper import ArabNewsScraper
+from app.scrapers.tehrantimes_scraper import TehranTimesScraper
+from app.scrapers.jpost_scraper import JerusalemPostScraper
+from app.scrapers.ansa_scraper import AnsaNewsScraper
+from app.scrapers.reuters_scraper import ReutersScraper
+from app.scrapers.france24_scraper import France24Scraper
+from app.scrapers.apnews_scraper import APNewsScraper
+from app.scrapers.npr_scraper import NPRScraper
+from app.scrapers.cnn_scraper import CNNScraper
 from app.models.news import Source, Category, NewsArticle
 from app import db
 from app.utils.text_utils import generate_slug
@@ -23,6 +34,7 @@ from datetime import datetime
 class ScraperManager:
     def __init__(self):
         self.scrapers = {
+            # Pakistani news sources
             'bbc': BBCScraper(),
             'geo': GeoNewsScraper(),
             'ary': ARYNewsScraper(),
@@ -34,7 +46,19 @@ class ScraperManager:
             'tribune': TribuneNewsScraper(),
             'aaj': AajNewsScraper(),
             '92news': News92Scraper(),
-            'thenews': TheNewsScraper()
+            'thenews': TheNewsScraper(),
+            
+            # International news sources
+            'aljazeera': AlJazeeraScraper(),
+            'arabnews': ArabNewsScraper(),
+            'tehrantimes': TehranTimesScraper(),
+            'jpost': JerusalemPostScraper(),
+            'ansa': AnsaNewsScraper(),
+            'reuters': ReutersScraper(),
+            'france24': France24Scraper(),
+            'apnews': APNewsScraper(),
+            'npr': NPRScraper(),
+            'cnn': CNNScraper()
         }
         self.logger = logging.getLogger('scraper.manager')
         self.text_processor = TextProcessor()
