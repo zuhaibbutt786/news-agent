@@ -19,20 +19,69 @@ class BaseScraper(ABC):
     
     def get_page(self, url):
         """Fetch the HTML content of a page"""
-        try:
-            response = requests.get(url, headers=self.headers, timeout=10)
-            response.raise_for_status()
-            return response.text
-        except requests.RequestException as e:
-            self.logger.error(f"Error fetching {url}: {e}")
-            return None
+        max_retries = 3
+        retry_delay = 2
+        
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(url, headers=self.headers, timeout=10)
+                response.raise_for_status()
+                return response.text
+            except requests.HTTPError as e:
+                status_code = e.response.status_code
+                if status_code in [403, 429]:  # Forbidden or Too Many Requests
+                    self.logger.warning(f"Access denied (status {status_code}) for {url}. Changing user agent and retrying...")
+                    # Rotate user agents
+                    user_agents = [
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Safari/605.1.15',
+                        'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36',
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0'
+                    ]
+                    self.headers['User-Agent'] = user_agents[attempt % len(user_agents)]
+                    time.sleep(retry_delay * (attempt + 1))  # Exponential backoff
+                    continue
+                else:
+                    self.logger.error(f"HTTP error fetching {url}: {e}")
+                    return None
+            except requests.RequestException as e:
+                self.logger.error(f"Error fetching {url}: {e}")
+                if attempt < max_retries - 1:
+                    self.logger.info(f"Retrying {url} (attempt {attempt + 1}/{max_retries})...")
+                    time.sleep(retry_delay * (attempt + 1))
+                    continue
+                return None
+            except Exception as e:
+                self.logger.error(f"Unexpected error fetching {url}: {e}")
+                return None
+        
+        self.logger.error(f"Failed to fetch {url} after {max_retries} attempts")
+        return None
     
     def get_soup(self, url):
         """Get BeautifulSoup object from URL"""
-        html = self.get_page(url)
-        if html:
-            return BeautifulSoup(html, 'html.parser')
-        return None
+        try:
+            html = self.get_page(url)
+            if html:
+                try:
+                    return BeautifulSoup(html, 'html.parser')
+                except Exception as e:
+                    self.logger.error(f"Error parsing HTML from {url}: {e}")
+                    # Try with a more lenient parser
+                    try:
+                        return BeautifulSoup(html, 'lxml')
+                    except Exception as e2:
+                        self.logger.error(f"Error parsing HTML with lxml from {url}: {e2}")
+                        # Last resort: use html5lib
+                        try:
+                            return BeautifulSoup(html, 'html5lib')
+                        except Exception as e3:
+                            self.logger.error(f"All HTML parsers failed for {url}: {e3}")
+                            return None
+            return None
+        except Exception as e:
+            self.logger.error(f"Unexpected error in get_soup for {url}: {e}")
+            return None
     
     def clean_text(self, text):
         """Clean text by removing extra whitespace"""
@@ -78,13 +127,23 @@ class BaseScraper(ABC):
     
     def scrape_articles(self, category=None, limit=10):
         """Scrape multiple articles"""
-        article_urls = self.get_article_urls(category, limit)
-        articles = []
-        
-        for url in article_urls:
-            self.random_delay()
-            article_data = self.scrape_article(url)
-            if article_data:
-                articles.append(article_data)
-        
-        return articles
+        try:
+            article_urls = self.get_article_urls(category, limit)
+            articles = []
+            
+            for url in article_urls:
+                try:
+                    self.random_delay()
+                    article_data = self.scrape_article(url)
+                    if article_data:
+                        articles.append(article_data)
+                except Exception as e:
+                    self.logger.error(f"Error scraping article {url}: {e}")
+                    # Continue with the next article even if this one fails
+                    continue
+            
+            return articles
+        except Exception as e:
+            self.logger.error(f"Error in scrape_articles for {self.source_name}: {e}")
+            # Return empty list instead of failing completely
+            return []
